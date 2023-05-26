@@ -1,5 +1,12 @@
 <script setup>
 import { ref } from 'vue';
+import { loginAPI } from '@/apis/user.js'
+import { ElMessage } from 'element-plus'
+import 'element-plus/theme-chalk/el-message.css'
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user.js'
+
+const userStore = useUserStore()
 
 const formRef = ref(null)
 
@@ -28,12 +35,22 @@ const rules = {
   ]
 }
 
+const router = useRouter()
+
 function submit() {
-  formRef.value.validate((valid) => {
+  formRef.value.validate(async (valid) => {
     //console.log(valid);
     if (valid) {
       //执行登录逻辑
+      const res = await loginAPI(userInfo.value.account, userInfo.value.password)
+      //console.log(res);
 
+      ElMessage({ type: 'success', message: '登录成功' })
+      userStore.setUserInfo(res.result)
+      //console.log(localStorage);
+
+      //跳转首页
+      router.replace({ path: '/' })
     }
   })
 }
