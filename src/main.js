@@ -8,8 +8,8 @@ import router from './router'
 import { lazyPlugin } from '@/directives'
 import { componentPlugin } from '@/components'
 
-/* localStorage.clear()
-console.log(localStorage) */
+//localStorage.clear()
+console.log(localStorage)
 
 const app = createApp(App)
 
