@@ -4,9 +4,6 @@ import 'element-plus/theme-chalk/el-message.css'
 import { useUserStore } from '@/stores/user.js'
 import { useRouter } from 'vue-router'
 
-const userStore = useUserStore()
-const router = useRouter()
-
 // 创建axios实例
 const http = axios.create({
   baseURL: 'http://pcapi-xiaotuxian-front-devtest.itheima.net',
@@ -15,6 +12,7 @@ const http = axios.create({
 
 // axios请求拦截器
 http.interceptors.request.use(config => {
+  const userStore = useUserStore()
   //按照后端的要求拼接token数据
   const token = userStore.userInfoData.token
   if (token) {
@@ -25,6 +23,8 @@ http.interceptors.request.use(config => {
 
 // axios响应式拦截器
 http.interceptors.response.use(res => res.data, e => {
+  const userStore = useUserStore()
+  const router = useRouter()
   ElMessage({
     type: 'warning',
     message: e.response.data.message
