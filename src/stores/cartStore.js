@@ -1,17 +1,30 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { useUserStore } from './user'
+import { insertCartAPI, getNewCartListAPI, delCartAPI } from '@/apis/cart'
 
 
 export const useCartStore = defineStore('cart', () => {
+  const userStore = useUserStore()
+  const token = computed(() => userStore.userInfoData.token)
+
   const cartList = ref([])
 
-  const addCart = (goods) => {
-    const item = cartList.value.find((item) => goods.skuId === item.skuId)
-    if (item) {
-      item.count++
+  const addCart = async (goods) => {
+    const { skuId, count } = goods
+    if (token.value) {
+      await insertCartAPI(skuId, count)
+      const res = await getNewCartListAPI()
+      cartList.value = res.result
     }
     else {
-      cartList.value.push(goods)
+      const item = cartList.value.find((item) => goods.skuId === item.skuId)
+      if (item) {
+        item.count++
+      }
+      else {
+        cartList.value.push(goods)
+      }
     }
   }
 
@@ -21,9 +34,17 @@ export const useCartStore = defineStore('cart', () => {
   //是否全选
   const isAll = computed(() => cartList.value.every((i) => i.selected))
 
-  const delCart = (skuId) => {
-    const idx = cartList.value.findIndex((item) => skuId === item.skuId)
-    cartList.value.splice(idx, 1)
+  const delCart = async (skuId) => {
+    if (token.value) {
+      //调用接口实现接口购物车中的删除功能
+      await delCartAPI([skuId])
+      const res = await getNewCartListAPI()
+      cartList.value = res.result
+    }
+    else {
+      const idx = cartList.value.findIndex((item) => skuId === item.skuId)
+      cartList.value.splice(idx, 1)
+    }
   }
 
   const checkboxChange = (skuId, selected) => {
@@ -42,6 +63,10 @@ export const useCartStore = defineStore('cart', () => {
   //已选择商品价钱合计
   const selectedPrice = computed(() => cartList.value.filter(item => item.selected).reduce((a, c) => a + c.count * c.price, 0))
 
+  const clearAll = () => {
+    cartList.value = []
+  }
+
   return {
     cartList,
     addCart,
@@ -52,7 +77,8 @@ export const useCartStore = defineStore('cart', () => {
     isAll,
     allCheck,
     selectedCount,
-    selectedPrice
+    selectedPrice,
+    clearAll
   }
 }, {
   persist: true,
